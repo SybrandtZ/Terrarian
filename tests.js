@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { chapters } = require("./app.js");
 
-console.log("Running template tests...");
+console.log("Running Terrarian template tests...");
 
 // Test 1: Check required files exist
 const requiredFiles = ["index.html", "app.js", "tests.js", "README.md"];
@@ -15,14 +15,30 @@ requiredFiles.forEach((file) => {
   );
 });
 
-// Test 2: Verify default chapter data matches the template
+// Test 2: Verify all 10 chapters match expected titles in order
+const expectedTitles = [
+  "The Beginning",
+  "Preparation",
+  "The Dungeon",
+  "The Wall to a new Beginning",
+  "Rediscovery",
+  "Mechanical Destruction",
+  "The Restless Jungle",
+  "Guardian of the Temple",
+  "The Cult and the Chaos that comes after",
+  "The One above it all"
+];
+
 assert.strictEqual(Array.isArray(chapters), true, "Chapters should be an array");
-assert.strictEqual(chapters.length >= 1, true, "Should have at least one chapter");
-assert.strictEqual(
-  chapters[0].title,
-  "The beginning",
-  'First chapter title should be "The beginning"'
-);
+assert.strictEqual(chapters.length, expectedTitles.length, "Should have 10 chapters");
+
+expectedTitles.forEach((title, index) => {
+  assert.strictEqual(
+    chapters[index].title,
+    title,
+    `Chapter ${index + 1} title should be "${title}"`
+  );
+});
 
 // Test 3: Verify HTML structure contains key elements
 const htmlContent = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
