@@ -257,13 +257,19 @@ function selectChapter(id) {
 
 // Always open the "Chapters" home page by default when the website loads
 if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", () => {
+  const initApp = () => {
     const homeBtn = document.getElementById("home-btn");
     if (homeBtn) {
       homeBtn.addEventListener("click", selectHome);
     }
     selectHome();
-  });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApp);
+  } else {
+    initApp();
+  }
 }
 
 // Export for testing in Node.js

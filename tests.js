@@ -1,7 +1,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
-const { chapters } = require("./app.js");
+const { homeContent, chapters } = require("./app.js");
 
 console.log("Running Terrarian template tests...");
 
@@ -15,7 +15,14 @@ requiredFiles.forEach((file) => {
   );
 });
 
-// Test 2: Verify all 10 chapters match expected titles in order
+// Test 2: Verify home content
+assert.strictEqual(homeContent.title, "Chapters", 'Home title should be "Chapters"');
+assert.ok(
+  homeContent.text.startsWith("Welcome to the Terraria guide, Terrarian."),
+  "Home text should contain welcome message"
+);
+
+// Test 3: Verify all 10 chapters match expected titles in order
 const expectedTitles = [
   "The Beginning",
   "Preparation",
@@ -38,13 +45,17 @@ expectedTitles.forEach((title, index) => {
     title,
     `Chapter ${index + 1} title should be "${title}"`
   );
+  assert.ok(
+    Array.isArray(chapters[index].checklist) && chapters[index].checklist.length > 0,
+    `Chapter ${index + 1} should have checklist items`
+  );
 });
 
-// Test 3: Verify HTML structure contains key elements
+// Test 4: Verify HTML structure contains key elements
 const htmlContent = fs.readFileSync(path.join(__dirname, "index.html"), "utf8");
+assert.ok(htmlContent.includes('id="home-btn"'), "HTML must include #home-btn");
 assert.ok(htmlContent.includes('id="chapter-list"'), "HTML must include #chapter-list");
 assert.ok(htmlContent.includes('id="chapter-title"'), "HTML must include #chapter-title");
 assert.ok(htmlContent.includes('id="chapter-content"'), "HTML must include #chapter-content");
-assert.ok(htmlContent.includes("Chapters"), 'HTML must include "Chapters" sidebar header');
 
 console.log("All tests passed successfully!");
