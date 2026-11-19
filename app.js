@@ -106,7 +106,6 @@ const chapters = [
   }
 ];
 
-// Load saved checklist progress from localStorage if available
 const STORAGE_KEY = "terrarian_checklist_progress";
 let completedItems = {};
 if (typeof localStorage !== "undefined") {
@@ -126,6 +125,23 @@ function saveProgress() {
       // Ignore storage errors
     }
   }
+}
+
+function createFramedPanel(headerText, bodyBuilder) {
+  const panel = document.createElement("div");
+  panel.className = "wiki-panel";
+
+  const header = document.createElement("div");
+  header.className = "wiki-panel-header";
+  header.textContent = headerText;
+
+  const body = document.createElement("div");
+  body.className = "wiki-panel-body";
+  bodyBuilder(body);
+
+  panel.appendChild(header);
+  panel.appendChild(body);
+  return panel;
 }
 
 function renderSidebar(chapterData, activeId) {
@@ -164,11 +180,14 @@ function selectHome() {
 
   if (contentEl) {
     contentEl.innerHTML = "";
-    const p = document.createElement("p");
-    p.textContent = homeContent.text;
-    p.style.fontSize = "1.2rem";
-    p.style.lineHeight = "1.7";
-    contentEl.appendChild(p);
+    const overviewPanel = createFramedPanel("Guide Overview", (body) => {
+      const p = document.createElement("p");
+      p.textContent = homeContent.text;
+      p.style.fontSize = "1.15rem";
+      p.style.lineHeight = "1.65";
+      body.appendChild(p);
+    });
+    contentEl.appendChild(overviewPanel);
   }
 
   renderSidebar(chapters, null);
@@ -186,76 +205,86 @@ function selectChapter(id) {
   if (contentEl) {
     contentEl.innerHTML = "";
 
-    const heading = document.createElement("h3");
-    heading.textContent = "Checklist";
-    heading.style.marginBottom = "16px";
-    heading.style.fontSize = "1.3rem";
-    contentEl.appendChild(heading);
+    const checklistPanel = createFramedPanel("Checklist", (body) => {
+      const ul = document.createElement("ul");
+      ul.className = "checklist-list";
 
-    const ul = document.createElement("ul");
-    ul.style.listStyle = "none";
-    ul.style.padding = "0";
+      chapter.checklist.forEach((itemText, index) => {
+        const itemKey = `${chapter.id}-${index}`;
+        const isChecked = !!completedItems[itemKey];
 
-    chapter.checklist.forEach((itemText, index) => {
-      const itemKey = `${chapter.id}-${index}`;
-      const isChecked = !!completedItems[itemKey];
+        const li = document.createElement("li");
+        li.className = "checklist-item";
 
-      const li = document.createElement("li");
-      li.style.margin = "12px 0";
-      li.style.display = "flex";
-      li.style.alignItems = "center";
-      li.style.cursor = "pointer";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "checklist-checkbox";
+        checkbox.checked = isChecked;
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = isChecked;
-      checkbox.style.marginRight = "12px";
-      checkbox.style.width = "18px";
-      checkbox.style.height = "18px";
-      checkbox.style.cursor = "pointer";
+        const label = document.createElement("span");
+        label.className = "checklist-label" + (isChecked ? " completed" : "");
+        label.textContent = itemText;
 
-      const label = document.createElement("span");
-      label.textContent = itemText;
-      if (isChecked) {
-        label.style.textDecoration = "line-through";
-        label.style.opacity = "0.7";
-      }
+        const updateState = (checked) => {
+          completedItems[itemKey] = checked;
+          saveProgress();
+          if (checked) {
+            label.classList.add("completed");
+          } else {
+            label.classList.remove("completed");
+          }
+        };
 
-      const updateState = (checked) => {
-        completedItems[itemKey] = checked;
-        saveProgress();
-        if (checked) {
-          label.style.textDecoration = "line-through";
-          label.style.opacity = "0.7";
-        } else {
-          label.style.textDecoration = "none";
-          label.style.opacity = "1";
-        }
-      };
-
-      checkbox.addEventListener("change", () => {
-        updateState(checkbox.checked);
-      });
-
-      li.addEventListener("click", (e) => {
-        if (e.target !== checkbox) {
-          checkbox.checked = !checkbox.checked;
+        checkbox.addEventListener("change", () => {
           updateState(checkbox.checked);
-        }
+        });
+
+        li.addEventListener("click", (e) => {
+          if (e.target !== checkbox) {
+            checkbox.checked = !checkbox.checked;
+            updateState(checkbox.checked);
+          }
+        });
+
+        li.appendChild(checkbox);
+        li.appendChild(label);
+        ul.appendChild(li);
       });
 
-      li.appendChild(checkbox);
-      li.appendChild(label);
-      ul.appendChild(li);
+      body.appendChild(ul);
     });
 
-    contentEl.appendChild(ul);
+    const bottomGrid = document.createElement("div");
+    bottomGrid.className = "bottom-grid";
+
+    const notesPanel = createFramedPanel("Chapter Notes", (body) => {
+      const p = document.createElement("p");
+      p.className = "muted-note";
+      p.textContent =
+        "Check off goals as you complete them. Progress is saved automatically in your browser.";
+      body.appendChild(p);
+    });
+
+    const nextPanel = createFramedPanel("Progression", (body) => {
+      const p = document.createElement("p");
+      p.className = "muted-note";
+      const nextChapter = chapters.find((c) => c.id === id + 1);
+      p.textContent = nextChapter
+        ? `Up next: ${nextChapter.title}. Nothing is required before moving on.`
+        : "You have reached the final chapter of the guide.";
+      body.appendChild(p);
+    });
+
+    bottomGrid.appendChild(notesPanel);
+    bottomGrid.appendChild(nextPanel);
+
+    contentEl.appendChild(checklistPanel);
+    contentEl.appendChild(bottomGrid);
   }
 
   renderSidebar(chapters, id);
 }
 
-// Always open the "Chapters" home page by default when the website loads
 if (typeof document !== "undefined") {
   const initApp = () => {
     const homeBtn = document.getElementById("home-btn");
@@ -272,7 +301,6 @@ if (typeof document !== "undefined") {
   }
 }
 
-// Export for testing in Node.js
 if (typeof module !== "undefined" && module.exports) {
   module.exports = { homeContent, chapters, renderSidebar, selectHome, selectChapter };
 }
