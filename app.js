@@ -1,3 +1,8 @@
+const homeContent = {
+  title: "Chapters",
+  text: "Welcome to the Terraria guide, Terrarian. This guide includes general tips, what you can do and a checklist to give a rough idea of what you can achieve which includes item recommandations, stuff which can be handy for now and later and goals to keep in mind. Once you have completed everything on one chapter you're able to move on to the next. Nothing is required but is recommended to complete before moving on."
+};
+
 const chapters = [
   {
     id: 1,
@@ -101,7 +106,38 @@ const chapters = [
   }
 ];
 
+// Load saved checklist progress from localStorage if available
+const STORAGE_KEY = "terrarian_checklist_progress";
+let completedItems = {};
+if (typeof localStorage !== "undefined") {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) completedItems = JSON.parse(saved);
+  } catch (e) {
+    completedItems = {};
+  }
+}
+
+function saveProgress() {
+  if (typeof localStorage !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(completedItems));
+    } catch (e) {
+      // Ignore storage errors
+    }
+  }
+}
+
 function renderSidebar(chapterData, activeId) {
+  const homeBtn = document.getElementById("home-btn");
+  if (homeBtn) {
+    if (activeId === null) {
+      homeBtn.classList.add("active");
+    } else {
+      homeBtn.classList.remove("active");
+    }
+  }
+
   const listEl = document.getElementById("chapter-list");
   if (!listEl) return;
 
@@ -120,6 +156,24 @@ function renderSidebar(chapterData, activeId) {
   });
 }
 
+function selectHome() {
+  const titleEl = document.getElementById("chapter-title");
+  const contentEl = document.getElementById("chapter-content");
+
+  if (titleEl) titleEl.textContent = homeContent.title;
+
+  if (contentEl) {
+    contentEl.innerHTML = "";
+    const p = document.createElement("p");
+    p.textContent = homeContent.text;
+    p.style.fontSize = "1.2rem";
+    p.style.lineHeight = "1.7";
+    contentEl.appendChild(p);
+  }
+
+  renderSidebar(chapters, null);
+}
+
 function selectChapter(id) {
   const chapter = chapters.find((c) => c.id === id);
   if (!chapter) return;
@@ -128,13 +182,13 @@ function selectChapter(id) {
   const contentEl = document.getElementById("chapter-content");
 
   if (titleEl) titleEl.textContent = chapter.title;
-  
+
   if (contentEl) {
     contentEl.innerHTML = "";
-    
+
     const heading = document.createElement("h3");
     heading.textContent = "Checklist";
-    heading.style.marginBottom = "16s";
+    heading.style.marginBottom = "16px";
     heading.style.fontSize = "1.3rem";
     contentEl.appendChild(heading);
 
@@ -142,7 +196,10 @@ function selectChapter(id) {
     ul.style.listStyle = "none";
     ul.style.padding = "0";
 
-    chapter.checklist.forEach((itemText) => {
+    chapter.checklist.forEach((itemText, index) => {
+      const itemKey = `${chapter.id}-${index}`;
+      const isChecked = !!completedItems[itemKey];
+
       const li = document.createElement("li");
       li.style.margin = "12px 0";
       li.style.display = "flex";
@@ -151,6 +208,7 @@ function selectChapter(id) {
 
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
+      checkbox.checked = isChecked;
       checkbox.style.marginRight = "12px";
       checkbox.style.width = "18px";
       checkbox.style.height = "18px";
@@ -158,11 +216,15 @@ function selectChapter(id) {
 
       const label = document.createElement("span");
       label.textContent = itemText;
+      if (isChecked) {
+        label.style.textDecoration = "line-through";
+        label.style.opacity = "0.7";
+      }
 
-      // Toggle style on click
-      const toggleCheck = () => {
-        checkbox.checked = !checkbox.checked;
-        if (checkbox.checked) {
+      const updateState = (checked) => {
+        completedItems[itemKey] = checked;
+        saveProgress();
+        if (checked) {
           label.style.textDecoration = "line-through";
           label.style.opacity = "0.7";
         } else {
@@ -172,18 +234,13 @@ function selectChapter(id) {
       };
 
       checkbox.addEventListener("change", () => {
-        if (checkbox.checked) {
-          label.style.textDecoration = "line-through";
-          label.style.opacity = "0.7";
-        } else {
-          label.style.textDecoration = "none";
-          label.style.opacity = "1";
-        }
+        updateState(checkbox.checked);
       });
 
       li.addEventListener("click", (e) => {
         if (e.target !== checkbox) {
-          toggleCheck();
+          checkbox.checked = !checkbox.checked;
+          updateState(checkbox.checked);
         }
       });
 
@@ -198,16 +255,18 @@ function selectChapter(id) {
   renderSidebar(chapters, id);
 }
 
-// Initialize app when loaded in a browser
+// Always open the "Chapters" home page by default when the website loads
 if (typeof document !== "undefined") {
   document.addEventListener("DOMContentLoaded", () => {
-    if (chapters.length > 0) {
-      selectChapter(chapters[0].id);
+    const homeBtn = document.getElementById("home-btn");
+    if (homeBtn) {
+      homeBtn.addEventListener("click", selectHome);
     }
+    selectHome();
   });
 }
 
 // Export for testing in Node.js
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { chapters, renderSidebar, selectChapter };
+  module.exports = { homeContent, chapters, renderSidebar, selectHome, selectChapter };
 }
