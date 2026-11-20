@@ -7,6 +7,22 @@ const chapters = [
   {
     id: 1,
     title: "The Beginning",
+    description: `When creating a world its recommended that you make it a medium as it's not to small or to big and if it's your first playthrough that you play on casual mode.
+
+When you spawn in mine some trees and create a workbenck to craft stuff and mine enough for wooden armor and a wooden sword or bow.
+
+After which you'll want to explore as to expand you're map and resources if you chose either crimson or corruption you'll want to avoid biomes with red or purple stone/dirt.
+
+If you happen to stumble across a cave search inside of it which can lead you into an underground system of tunnels and you'll be able to find chests and ores. If you have fully explored the cave is it's recommended that you exit it and look an the surface again. 
+
+After exploring you'll want to create houses for npc's so they will stay and build a base of operations for your workstations. When creating a inhabitle house you'll need to have a surface of more than 30 blocks, walls, chair, table and a house.  
+
+There are a few classes in the game which consistens of four classes: Melee, Ranger, Mage and Summoner. 
+- Melee has the best defense and oftentimes the strongest dps but lacks and struggles with range. 
+- Ranger has one of the best ranged weapons with high damage but the ammo is on a recourse with you have to grind for.
+- Mage has slighty worse damage then ranger but in exchange has a far bigger variety of weapons and statuses it can inflict and also runs on a recourse which continuously refills on its own even while attacking.
+- Summoner has by far the worse defense and the whips lack oftentimes range but inexchange has the highest damage output in the game.
+Within the classes or of course different weapon and armor types but in general the rules for the most part still exist.`,
     checklist: [
       "Build at least 3 valid NPC houses",
       "Mine Iron/Lead and Silver/Tungsten underground",
@@ -204,6 +220,19 @@ function selectChapter(id) {
 
   if (contentEl) {
     contentEl.innerHTML = "";
+
+    // Render chapter guide text if present
+    if (chapter.description) {
+      const guidePanel = createFramedPanel("Chapter Guide", (body) => {
+        const p = document.createElement("p");
+        p.style.whiteSpace = "pre-line";
+        p.style.fontSize = "1.12rem";
+        p.style.lineHeight = "1.65";
+        p.textContent = chapter.description;
+        body.appendChild(p);
+      });
+      contentEl.appendChild(guidePanel);
+    }
 
     const checklistPanel = createFramedPanel("Checklist", (body) => {
       const ul = document.createElement("ul");
