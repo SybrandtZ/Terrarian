@@ -1,6 +1,6 @@
 const homeContent = {
   title: "Chapters",
-  text: "Welcome to the Terraria guide, Terrarian. This guide includes general tips, what you can do and a checklist to give a rough idea of what you can achieve which includes item recommandations, stuff which can be handy for now and later and goals to keep in mind. Once you have completed everything on one chapter you're able to move on to the next. Nothing is required but is recommended to complete before moving on."
+  text: "Welcome to the Terraria guide, Terrarian. This guide includes general tips, what you can do and a checklist at the bottom to give a rough idea of what you can achieve which includes item recommandations, stuff which can be handy for now and later and goals to keep in mind. Once you have completed everything in one chapter you're able to move on to the next. Nothing is required but is recommended to complete before moving on."
 };
 
 const chapters = [
@@ -221,7 +221,6 @@ function selectChapter(id) {
   if (contentEl) {
     contentEl.innerHTML = "";
 
-    // Render chapter guide text if present
     if (chapter.description) {
       const guidePanel = createFramedPanel("Chapter Guide", (body) => {
         const p = document.createElement("p");
